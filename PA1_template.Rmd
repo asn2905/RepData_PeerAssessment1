@@ -1,25 +1,186 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+output:
+  pdf_document: default
+  html_document: default
 ---
+Reproducible Research: Peer Assessment 1
+==========================================
+
+##Loading and preprocessing the data
+
+###Review Criteria 1: Code for reading in the dataset and/or processing the data
+```{R}
+library(ggplot2)
+unzip("activity.zip")
+actData <- read.csv("activity.csv")
+
+```
+###Summary of the read data
+```{R}
+# *Data Head
+head(actData)
+```
+```{R}
+#*Data Summery
+summary(actData)
+```
+###Data Cleansing
+```{R}
+#  Date conversion
+actData$date <- as.Date(as.character(actData$date))
+# logical vector conversion for NA
+actDataNA <- is.na(actData$steps)
+# Clean data for later mean calculations
+cleanact <- actData[!actDataNA,]
+```
+
+##What is mean total number of steps taken per day?
+
+###Calculate Total Number of steps taken per day
+```{R}
+# aggregate clean non NA steps per day (SUM)
+SummedDataByDay <- aggregate(actData$steps, by=list(actData$date), sum)
+# adjust column names
+names(SummedDataByDay)[1] ="date"
+names(SummedDataByDay)[2] ="totalsteps"
+# top 15 of Summed Steps by day
+head(SummedDataByDay,10)
+```
+###Review criteria 2 :Histogram of the total number of steps taken each day
+```{R,height=300}
+# Plot using ggplot
+ggplot(SummedDataByDay, aes(x = totalsteps)) +
+  geom_histogram(fill = "green", binwidth=1000) +
+  labs(title = "Total Daily Steps", x = "Steps", y = "Frequency")
+```
+
+###Review Criteria 3: Mean and median number of steps taken each day
+```{R}
+# Mean of steps taken per day
+mean(SummedDataByDay$totalsteps,na.rm=TRUE)
+```
+```{R}
+#median of steps taken per day
+median(SummedDataByDay$totalsteps,na.rm=TRUE)
+```
+
+##What is the average daily activity pattern?
+
+###Review Criteria 4 : Time series plot of the average number of steps taken
+
+```{R}
+nonNASubset <- actData[!actDataNA,]
+MeanDataByInterval <- aggregate(nonNASubset$steps, by=list(nonNASubset$interval), mean)
+# set the column names
+names(MeanDataByInterval)[1] ="interval"
+names(MeanDataByInterval)[2] ="steps"
+
+ggplot(MeanDataByInterval, aes(x = interval, y=steps)) +
+  labs(title = "Sum of Steps by Interval", x = "interval", y = "steps")+
+  geom_line(color="green") 
+```
+
+###Review criteria 5:The 5-minute interval that, on average, contains the maximum number of steps
+```{R}
+maxInterval <- MeanDataByInterval[which.max(MeanDataByInterval$steps),]
+maxInterval
+```
+
+##Imputing missing values
+
+### Review criteria 6:Code to describe and show a strategy for imputing missing data
+####1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
+```{R}
+# generate listing of NA's
+missingVals <- sum(actDataNA)
+missingVals
+```
+####2. Create a new dataset that is equal to the original dataset but with the missing data filled in
+```{R}
+# new dataset
+actData2 <- actData
+
+# dataset minus NA's for Mean calculation
+NABase2 <- actData2[is.na(actData2$steps),]
+cleanAct2 <- actData2[!is.na(actData2$steps),]
+
+# generate Mean Data2 by interval
+MeanData2ByInterval <- aggregate(cleanAct2$steps, by=list(cleanAct2$interval), sum)
+names(MeanData2ByInterval)[1] ="interval"
+names(MeanData2ByInterval)[2] ="steps"
+
+# IMPUT METHOD
+actData2 <- actData
+missingData <- is.na(actData2$steps)
+meanVals <- tapply(cleanact$steps, cleanact$interval, mean, na.rm=TRUE, simplify=TRUE)
+actData2$steps[missingData] <- meanVals[as.character(actData2$interval[missingData])]
 
 
-## Loading and preprocessing the data
+# original missing data count
+sum(missingData)
+## [1] 2304
+# count of NA values
+sum(is.na(actData2$steps))
+```
+###Review Criteria 7 :Histogram of the total number of steps taken each day after missing values are imputed
+```{R}
+FullSummedDataByDay <- aggregate(actData2$steps, by=list(actData2$date), sum)
+
+names(FullSummedDataByDay)[1] ="date"
+names(FullSummedDataByDay)[2] ="totalsteps"
+head(FullSummedDataByDay,15)
+```
+```{R}
+# Plot using ggplot
+ggplot(FullSummedDataByDay, aes(x = totalsteps)) +
+  geom_histogram(fill = "green", binwidth=1000) +
+  labs(title = "Total Daily Steps", x = "Steps", y = "Frequency")
+```
+```{R}
+# Mean on New Data
+mean(FullSummedDataByDay$totalsteps)
+```
+```{R}
+# Median on New Data
+median(FullSummedDataByDay$totalsteps)
+```
+
+####Original Mean and Median
+```{R}
+# Mean of steps taken per day
+mean(SummedDataByDay$totalsteps,na.rm=TRUE)
+# Median of steps taken per day
+median(SummedDataByDay$totalsteps,na.rm=TRUE)
+```
+#### New Mean and Median
+```{R}
+# Mean on New Data
+mean(FullSummedDataByDay$totalsteps)
+# Median on New Data
+median(FullSummedDataByDay$totalsteps)
+```
 
 
+##Are there differences in activity patterns between weekdays and weekends?
 
-## What is mean total number of steps taken per day?
+```{R}
+actData2$weekday <- weekdays(actData2$date)
+actData2$weekend <- ifelse (actData2$weekday == "Saturday" | actData2$weekday == "Sunday", "Weekend", "Weekday")
 
+head(actData2,5)
+```
+###Review Criteria 8 : Panel plot comparing the average number of steps taken per 5-minute interval across weekdays and weekends
+```{R}
+MeanDataWeekendWeekday <- aggregate(actData2$steps, by=list(actData2$weekend, actData2$interval), mean)
+names(MeanDataWeekendWeekday)[1] ="weekend"
+names(MeanDataWeekendWeekday)[2] ="interval"
+names(MeanDataWeekendWeekday)[3] ="steps"
 
+ggplot(MeanDataWeekendWeekday, aes(x = interval, y=steps, color=weekend)) +
+  geom_line() +
+  facet_grid(weekend ~ .) +
+  labs(title = "Mean of Steps by Interval", x = "interval", y = "steps")
+```
 
-## What is the average daily activity pattern?
+###*END*
 
-
-
-## Imputing missing values
-
-
-
-## Are there differences in activity patterns between weekdays and weekends?
