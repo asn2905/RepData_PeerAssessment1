@@ -101,7 +101,7 @@ ggplot(SummedDataByDay, aes(x = totalsteps)) +
 ## Warning: Removed 8 rows containing non-finite values (stat_bin).
 ```
 
-![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6-1.png)
+![](PA1_template_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
 
 ###Review Criteria 3: Mean and median number of steps taken each day
 
@@ -140,7 +140,7 @@ ggplot(MeanDataByInterval, aes(x = interval, y=steps)) +
   geom_line(color="green") 
 ```
 
-![plot of chunk unnamed-chunk-9](figure/unnamed-chunk-9-1.png)
+![](PA1_template_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
 
 ###Review criteria 5:The 5-minute interval that, on average, contains the maximum number of steps
 
@@ -243,7 +243,7 @@ ggplot(FullSummedDataByDay, aes(x = totalsteps)) +
   labs(title = "Total Daily Steps", x = "Steps", y = "Frequency")
 ```
 
-![plot of chunk unnamed-chunk-14](figure/unnamed-chunk-14-1.png)
+![](PA1_template_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
 
 ```r
 # Mean on New Data
@@ -335,7 +335,7 @@ ggplot(MeanDataWeekendWeekday, aes(x = interval, y=steps, color=weekend)) +
   labs(title = "Mean of Steps by Interval", x = "interval", y = "steps")
 ```
 
-![plot of chunk unnamed-chunk-20](figure/unnamed-chunk-20-1.png)
+![](PA1_template_files/figure-html/unnamed-chunk-20-1.png)<!-- -->
 
 ###*END*
 
